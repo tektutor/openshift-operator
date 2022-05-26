@@ -397,3 +397,198 @@ I0527 04:56:58.910368   35700 request.go:665] Waited for 1.020120093s due to cli
 {"level":"info","ts":1653607620.3663027,"logger":"controller.memcached-controller","msg":"Starting Controller"}
 {"level":"info","ts":1653607620.4667695,"logger":"controller.memcached-controller","msg":"Starting workers","worker count":48}
 </pre>
+
+## You need to login to your redhat account to authorize downloading redhat container images
+```
+docker login registry.redhat.io
+```
+
+<pre>
+(jegan@tektutor.org)$ <b>docker login registry.redhat.io</b>
+Authenticating with existing credentials...
+Login did not succeed, error: Error response from daemon: Get https://registry.redhat.io/v2/: unauthorized: Please login to the Red Hat Registry using your Customer Portal credentials. Further instructions can be found here: https://access.redhat.com/articles/3399531
+Username (youremail@gmail.com): <type-your-redhat-login>
+Password: <type-your-redhat-password>
+WARNING! Your password will be stored unencrypted in /home/jegan/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+</pre>
+
+## Build the OpenShift operator image
+```
+make docker-build IMG=tektutor/memcached-openshift-operator:1.0 
+```
+
+## Troubleshooting version conflicts
+You may get this kind of version conflict errors while building your operator image.
+
+You need to edit the /home/jegan/projects/memcached-operator/requirements.yml and update the version to 0.4.0 as necessary.
+
+<pre>
+(jegan@tektutor.org)$ <b>make docker-build IMG=tektutor/memcached-openshift-operator:1.0</b>
+docker build -t tektutor/memcached-openshift-operator:1.0 .
+Sending build context to Docker daemon  85.69MB
+Step 1/6 : FROM registry.redhat.io/openshift4/ose-ansible-operator:v4.10
+v4.10: Pulling from openshift4/ose-ansible-operator
+237bfbffb5f2: Already exists 
+39382676eb30: Already exists 
+a7635174fc67: Pull complete 
+804449b22e26: Pull complete 
+466a9b3ce4ae: Pull complete 
+Digest: sha256:4bc6b9cde3a23bb9d8a75aa0feb31b71caf2b079775b936e39bd765d0b1249f6
+Status: Downloaded newer image for registry.redhat.io/openshift4/ose-ansible-operator:v4.10
+ ---> f4f5e47f0f23
+Step 2/6 : COPY requirements.yml ${HOME}/requirements.yml
+ ---> 1a872f2bf218
+Step 3/6 : RUN ansible-galaxy collection install -r ${HOME}/requirements.yml  && chmod -R ug+rwx ${HOME}/.ansible
+ ---> Running in 2021cd511478
+Process install dependency map
+ERROR! Cannot meet requirement operator_sdk.util:0.3.1 as it is already installed at version '0.4.0'. Use --force to overwrite
+The command '/bin/sh -c ansible-galaxy collection install -r ${HOME}/requirements.yml  && chmod -R ug+rwx ${HOME}/.ansible' returned a non-zero code: 1
+Makefile:80: recipe for target 'docker-build' failed
+make: *** [docker-build] Error 1
+</pre>
+
+Another error that I encountered
+<pre>
+(jegan@tektutor.org)$ make docker-build IMG=tektutor/memcached-openshift-operator:1.0 
+docker build -t tektutor/memcached-openshift-operator:1.0 .
+Sending build context to Docker daemon  85.69MB
+Step 1/6 : FROM registry.redhat.io/openshift4/ose-ansible-operator:v4.10
+ ---> f4f5e47f0f23
+Step 2/6 : COPY requirements.yml ${HOME}/requirements.yml
+ ---> 13bfdc35caad
+Step 3/6 : RUN ansible-galaxy collection install -r ${HOME}/requirements.yml  && chmod -R ug+rwx ${HOME}/.ansible
+ ---> Running in 5ca298368e12
+Process install dependency map
+ERROR! Cannot meet requirement kubernetes.core:2.2.0 as it is already installed at version '2.2.3'. Use --force to overwrite
+The command '/bin/sh -c ansible-galaxy collection install -r ${HOME}/requirements.yml  && chmod -R ug+rwx ${HOME}/.ansible' returned a non-zero code: 1
+Makefile:80: recipe for target 'docker-build' failed
+make: *** [docker-build] Error 1
+</pre>
+
+My updated requirements.yml file looks as below
+<pre>
+(jegan@tektutor.org)$ cat requirements.yml 
+---
+collections:
+  - name: community.kubernetes
+    version: "1.2.1"
+  - name: operator_sdk.util
+    version: "0.4.0"
+  - name: kubernetes.core
+    version: "2.2.3"
+</pre>
+
+Once you update the requirements.yml with the tool version installed on your system, you can expect the build go thru.
+
+## Build your opetor image
+```
+```
+
+Expected ouptut is
+
+<pre>
+(jegan@tektutor.org)$ <b>ake docker-build IMG=tektutor/memcached-openshift-operator:1.0</b>
+docker build -t tektutor/memcached-openshift-operator:1.0 .
+Sending build context to Docker daemon  85.69MB
+Step 1/6 : FROM registry.redhat.io/openshift4/ose-ansible-operator:v4.10
+ ---> f4f5e47f0f23
+Step 2/6 : COPY requirements.yml ${HOME}/requirements.yml
+ ---> e022b262f13f
+Step 3/6 : RUN ansible-galaxy collection install -r ${HOME}/requirements.yml  && chmod -R ug+rwx ${HOME}/.ansible
+ ---> Running in fafe325a28a8
+Process install dependency map
+Starting collection install process
+Skipping 'community.kubernetes' as it is already installed
+Skipping 'operator_sdk.util' as it is already installed
+Skipping 'kubernetes.core' as it is already installed
+Removing intermediate container fafe325a28a8
+ ---> 94a6737f891d
+Step 4/6 : COPY watches.yaml ${HOME}/watches.yaml
+ ---> 127d8fc73381
+Step 5/6 : COPY roles/ ${HOME}/roles/
+ ---> 93855f5a5ecb
+Step 6/6 : COPY playbooks/ ${HOME}/playbooks/
+ ---> d269d0d3412a
+Successfully built d269d0d3412a
+Successfully tagged tektutor/memcached-openshift-operator:1.0
+</pre>
+
+## Login to your Docker Hub account
+```
+docker login
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ <b>docker login</b>
+Authenticating with existing credentials...
+WARNING! Your password will be stored unencrypted in /home/jegan/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+</pre>
+
+## Push your OpenShift operator image to your Docker Hub repository
+In my case I already created a tektutor/memcached-openshift-operator public repository in my Docker Hub account.
+```
+docker push tektutor/memcached-openshift-operator:1.0
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ docker push tektutor/memcached-openshift-operator:1.0
+The push refers to repository [docker.io/tektutor/memcached-openshift-operator]
+0c49a12a877a: Pushed 
+75afd9f602f6: Pushed 
+95d155708ffb: Pushed 
+134e709b3ce9: Pushed 
+2bf80cc44396: Pushed 
+aac39aeb35c3: Pushed 
+0606abea7f87: Pushed 
+d96403e3cf8e: Pushed 
+e767386b141e: Mounted from tektutor/controller 
+35db14176a6c: Mounted from tektutor/controller 
+1.0: digest: sha256:e0e0c28847be51e4a4fda927917a8c0d158c9c43293c6cb7b718f58f2c8c4077 size: 2412
+</pre>
+
+## Deploying our memcached-openshift-operator into the OpenShift cluster
+```
+make deploy IMG=tektutor/memcached-openshift-operator:1.0
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ make deploy IMG=tektutor/memcached-openshift-operator:1.0
+cd config/manager && /home/jegan/projects/memcached-operator/bin/kustomize edit set image controller=tektutor/memcached-openshift-operator:1.0
+/home/jegan/projects/memcached-operator/bin/kustomize build config/default | kubectl apply -f -
+namespace/memcached-operator-system created
+customresourcedefinition.apiextensions.k8s.io/memcacheds.cache.example.com unchanged
+serviceaccount/memcached-operator-controller-manager created
+role.rbac.authorization.k8s.io/memcached-operator-leader-election-role created
+clusterrole.rbac.authorization.k8s.io/memcached-operator-manager-role created
+clusterrole.rbac.authorization.k8s.io/memcached-operator-metrics-reader created
+clusterrole.rbac.authorization.k8s.io/memcached-operator-proxy-role created
+rolebinding.rbac.authorization.k8s.io/memcached-operator-leader-election-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/memcached-operator-manager-rolebinding created
+clusterrolebinding.rbac.authorization.k8s.io/memcached-operator-proxy-rolebinding created
+configmap/memcached-operator-manager-config created
+service/memcached-operator-controller-manager-metrics-service created
+deployment.apps/memcached-operator-controller-manager created
+</pre>
+
+## Check your deployment in the cluster
+```
+oc get deploy -n memcached-operator-system
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ <b>oc get deploy -n memcached-operator-system</b>
+NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
+memcached-operator-controller-manager   1/1     1            1           2m54s
+</pre>
