@@ -612,3 +612,43 @@ Expected output is
 memcached.cache.example.com/memcached-sample created
 </pre>
 
+## Bundling an Operator and deploying with Operator Lifecycle Manager
+
+We need to edit the Makefile with the image tektutor/memcached-openshift-operator:1.0 before proceeding
+```
+make bundle
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ make bundle
+operator-sdk generate kustomize manifests -q
+
+Display name for the operator (required): 
+> tektutor-memcached-operator
+
+Description for the operator (required): 
+> TekTutor's Memcached Openshift Operator
+
+Provider's name for the operator (required): 
+> tektutor
+
+Any relevant URL for the provider name (optional): 
+> https://medium.com/tektutor
+
+Comma-separated list of keywords for your operator (required): 
+> k8s,openshift,operator
+
+Comma-separated list of maintainers and their emails (e.g. 'name1:email1, name2:email2') (required): 
+> mail2jegan@gmail.com, jegan@tektutor.org
+cd config/manager && /home/jegan/projects/memcached-operator/bin/kustomize edit set image controller=controller:latest
+/home/jegan/projects/memcached-operator/bin/kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version 0.0.1  
+INFO[0001] Creating bundle.Dockerfile                   
+INFO[0001] Creating bundle/metadata/annotations.yaml    
+INFO[0001] Bundle metadata generated suceessfully       
+operator-sdk bundle validate ./bundle
+INFO[0000] All validation tests have completed successfully 
+</pre>
+
+
+
