@@ -1,6 +1,9 @@
 # openshift-operator
 
-For detailed official documentation, you may check here https://docs.openshift.com/container-platform/4.10/operators/operator_sdk/ansible/osdk-ansible-tutorial.html
+For detailed official documentation, you may check here 
+<pre>
+https://docs.openshift.com/container-platform/4.10/operators/operator_sdk/ansible/osdk-ansible-tutorial.html
+</pre>
 
 ## Installing Go Programming Language
 
