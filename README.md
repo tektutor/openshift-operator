@@ -110,9 +110,60 @@ OS/Arch:      linux/amd64
 </pre>
 
 ## Install Ansible in CentOS 7.x
+Make sure you first upgrade your pip
 ```
-sudo yum install -y ansible
+python3 -m pip install --upgrade pip
 ```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ python3 -m pip install --upgrade pip
+Collecting pip
+  Cache entry deserialization failed, entry ignored
+  Downloading https://files.pythonhosted.org/packages/a4/6d/6463d49a933f547439d6b5b98b46af8742cc03ae83543e4d7688c2420f8b/pip-21.3.1-py3-none-any.whl (1.7MB)
+    100% |████████████████████████████████| 1.7MB 710kB/s 
+Installing collected packages: pip
+Successfully installed pip-21.3.1
+</pre>
+
+
+Now proceed with the ansible installation
+```
+pip3 install ansible
+```
+<pre>
+(jegan@tektutor.org)$ <b>pip3 install ansible</b>
+WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.
+Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.
+To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.
+Defaulting to user installation because normal site-packages is not writeable
+Collecting ansible
+  Using cached ansible-4.10.0.tar.gz (36.8 MB)
+  Preparing metadata (setup.py) ... done
+Collecting ansible-core~=2.11.7
+  Using cached ansible-core-2.11.12.tar.gz (7.1 MB)
+  Preparing metadata (setup.py) ... done
+Collecting jinja2
+  Using cached Jinja2-3.0.3-py3-none-any.whl (133 kB)
+Requirement already satisfied: PyYAML in /home/jegan/.local/lib/python3.6/site-packages (from ansible-core~=2.11.7->ansible) (6.0)
+Requirement already satisfied: cryptography in /usr/lib/python3/dist-packages (from ansible-core~=2.11.7->ansible) (2.1.4)
+Requirement already satisfied: packaging in /usr/local/lib/python3.6/dist-packages (from ansible-core~=2.11.7->ansible) (21.3)
+Collecting resolvelib<0.6.0,>=0.5.3
+  Downloading resolvelib-0.5.4-py2.py3-none-any.whl (12 kB)
+Collecting MarkupSafe>=2.0
+  Downloading MarkupSafe-2.0.1-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (30 kB)
+Requirement already satisfied: pyparsing!=3.0.5,>=2.0.2 in /usr/local/lib/python3.6/dist-packages (from packaging->ansible-core~=2.11.7->ansible) (3.0.9)
+Building wheels for collected packages: ansible, ansible-core
+  Building wheel for ansible (setup.py) ... done
+  Created wheel for ansible: filename=ansible-4.10.0-py3-none-any.whl size=60559881 sha256=97c958fe0b983946ca58fc75c87fd70a1fb02ccf474825f95bab58a1961c658c
+  Stored in directory: /home/jegan/.cache/pip/wheels/fd/0b/73/1536be1c3fe3e172e003fa05da85642fa29210760ca928348b
+  Building wheel for ansible-core (setup.py) ... done
+  Created wheel for ansible-core: filename=ansible_core-2.11.12-py3-none-any.whl size=1952093 sha256=444dcc77090dffe25057150b09b82448e1eadb405f99bf58e81a6d35dc34e734
+  Stored in directory: /home/jegan/.cache/pip/wheels/de/a2/0a/cfe72f018b6d3845ab54b29259c0ac20eb169d18063770c09e
+Successfully built ansible ansible-core
+Installing collected packages: MarkupSafe, resolvelib, jinja2, ansible-core, ansible
+Successfully installed MarkupSafe-2.0.1 ansible-4.10.0 ansible-core-2.11.12 jinja2-3.0.3 resolvelib-0.5.4
+</pre>
 
 Check the version of ansible 
 ```
@@ -611,44 +662,4 @@ Expected output is
 (jegan@tektutor.org)$ oc apply -f config/samples/cache_v1_memcached.yaml 
 memcached.cache.example.com/memcached-sample created
 </pre>
-
-## Bundling an Operator and deploying with Operator Lifecycle Manager
-
-We need to edit the Makefile with the image tektutor/memcached-openshift-operator:1.0 before proceeding
-```
-make bundle
-```
-
-Expected output is
-<pre>
-(jegan@tektutor.org)$ make bundle
-operator-sdk generate kustomize manifests -q
-
-Display name for the operator (required): 
-> tektutor-memcached-operator
-
-Description for the operator (required): 
-> TekTutor's Memcached Openshift Operator
-
-Provider's name for the operator (required): 
-> tektutor
-
-Any relevant URL for the provider name (optional): 
-> https://medium.com/tektutor
-
-Comma-separated list of keywords for your operator (required): 
-> k8s,openshift,operator
-
-Comma-separated list of maintainers and their emails (e.g. 'name1:email1, name2:email2') (required): 
-> mail2jegan@gmail.com, jegan@tektutor.org
-cd config/manager && /home/jegan/projects/memcached-operator/bin/kustomize edit set image controller=controller:latest
-/home/jegan/projects/memcached-operator/bin/kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version 0.0.1  
-INFO[0001] Creating bundle.Dockerfile                   
-INFO[0001] Creating bundle/metadata/annotations.yaml    
-INFO[0001] Bundle metadata generated suceessfully       
-operator-sdk bundle validate ./bundle
-INFO[0000] All validation tests have completed successfully 
-</pre>
-
-
 
