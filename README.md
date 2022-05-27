@@ -592,3 +592,18 @@ Expected output is
 NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
 memcached-operator-controller-manager   1/1     1            1           2m54s
 </pre>
+
+## Let's create a Custom Resource
+```
+oc apply -f config/samples/cache_v1_memcached.yaml
+```
+
+Expected output is
+<pre>
+(jegan@tektutor.org)$ pwd
+/home/jegan/projects/memcached-operator
+
+(jegan@tektutor.org)$ oc apply -f config/samples/cache_v1_memcached.yaml 
+memcached.cache.example.com/memcached-sample created
+</pre>
+
